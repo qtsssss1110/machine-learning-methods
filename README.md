@@ -8,8 +8,8 @@ An interactive, beginner-friendly website that visually explains how machine lea
 
 It includes two modes:
 
-- Linear Regression: scattered data points and an animated best-fit line learning over epochs.
-- Deep Learning (ANN): feature inputs flowing through a neural network with training loss and class probabilities.
+- Linear Regression: scattered data points and an animated best-fit line moving into place.
+- Deep Learning (ANN): feature inputs flowing through a neural network with practice rounds and class probabilities.
 
 ## Run locally
 

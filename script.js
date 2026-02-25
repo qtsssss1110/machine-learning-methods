@@ -7,7 +7,7 @@ const state = {
 
 const refs = {
   algoButtons: [...document.querySelectorAll(".algo-btn")],
-  stepButtons: [...document.querySelectorAll(".step-btn")],
+  stepIndicators: [...document.querySelectorAll(".step-indicator")],
   prevButton: document.getElementById("prev-step"),
   nextButton: document.getElementById("next-step"),
   progressBar: document.getElementById("progress-bar"),
@@ -16,6 +16,8 @@ const refs = {
   watchCopy: document.getElementById("watch-copy"),
   linearPanel: document.getElementById("linear-panel"),
   deepPanel: document.getElementById("deep-panel"),
+  linearInputControl: document.getElementById("linear-input-control"),
+  deepSampleControl: document.getElementById("deep-sample-control"),
 };
 
 const stageCopyMap = {
@@ -30,9 +32,9 @@ const stageCopyMap = {
     learn: {
       title: "Learn: find the best line",
       copy:
-        "The model keeps adjusting a line to reduce mistakes. Each training epoch nudges slope and intercept so predictions get closer to real dots.",
+        "The model keeps adjusting one line so it sits as close to the cloud of dots as possible.",
       watch:
-        "Watch the line tilt and move while loss drops. Lower loss means better fit.",
+        "Watch the line tilt and slide until it matches the trend in the dots.",
     },
     output: {
       title: "Output: make a prediction",
@@ -46,23 +48,23 @@ const stageCopyMap = {
     input: {
       title: "Input: describe features",
       copy:
-        "Here each input is a set of features (ear shape, fur, tail). These numbers enter the first layer of a neural network.",
+        "This demo uses one sample slider. It sets feature values that enter the first layer of a neural network.",
       watch:
-        "Move sliders to change the sample. Brighter input nodes mean stronger feature values.",
+        "For now, keep the sample fixed and click Next to watch the network practice.",
     },
     learn: {
-      title: "Learn: tune many weights",
+      title: "Learn: improve the network",
       copy:
-        "A neural network learns by updating many connection weights over many epochs. It compares guesses to true labels and reduces error.",
+        "The network practices with many examples and updates its connections little by little.",
       watch:
-        "Edge color and thickness show weight direction and strength while loss trends down.",
+        "Just watch this step. The connecting lines shift as the model learns.",
     },
     output: {
       title: "Output: class probabilities",
       copy:
-        "The final layer returns probabilities for each class. The biggest bar is the model's best prediction for this sample.",
+        "Now move the sample slider. The model returns probabilities for each class.",
       watch:
-        "Try new feature values to see how probability bars shift.",
+        "Try different sample values and watch which class bar becomes highest.",
     },
   },
 };
@@ -75,14 +77,14 @@ const linear = {
   regenButton: document.getElementById("regen-data"),
   timer: null,
   data: [],
-  trueM: 1,
-  trueB: 3,
   m: 0.2,
   b: 8,
-  epoch: 0,
-  maxEpoch: 140,
-  lr: 0.032,
-  lastLoss: null,
+  targetM: 1,
+  targetB: 5,
+  round: 0,
+  maxRounds: 96,
+  initialError: null,
+  currentError: null,
   margin: { top: 18, right: 22, bottom: 42, left: 58 },
   size: { w: 700, h: 360 },
 };
@@ -96,14 +98,14 @@ function clamp(value, min, max) {
 }
 
 function linearGenerateData() {
-  linear.trueM = rand(0.65, 1.45);
-  linear.trueB = rand(2.0, 6.6);
+  const trueM = rand(0.65, 1.45);
+  const trueB = rand(2.0, 6.6);
 
   const points = [];
   for (let i = 0; i < 26; i += 1) {
     const x = rand(0.4, 9.6);
-    const noise = rand(-1.7, 1.7);
-    const y = clamp(linear.trueM * x + linear.trueB + noise, 0.4, 19.2);
+    const noise = rand(-1.2, 1.2);
+    const y = clamp(trueM * x + trueB + noise, 0.4, 19.2);
     points.push({ x, y });
   }
 
@@ -112,10 +114,14 @@ function linearGenerateData() {
 }
 
 function linearResetTraining() {
-  linear.m = rand(-0.5, 0.5);
-  linear.b = rand(6.5, 12.5);
-  linear.epoch = 0;
-  linear.lastLoss = null;
+  const bestFit = calcBestFitLine(linear.data);
+  linear.targetM = bestFit.m;
+  linear.targetB = bestFit.b;
+  linear.m = rand(-0.45, 0.45);
+  linear.b = rand(7.5, 13);
+  linear.round = 0;
+  linear.initialError = linearError(linear.m, linear.b);
+  linear.currentError = linear.initialError;
   stopLinearTraining();
   renderLinear();
 }
@@ -124,30 +130,45 @@ function linearPredict(x) {
   return linear.m * x + linear.b;
 }
 
-function linearLoss(m, b) {
+function linearError(m, b) {
   let sum = 0;
   for (const p of linear.data) {
-    const err = m * p.x + b - p.y;
-    sum += err * err;
+    const err = Math.abs(m * p.x + b - p.y);
+    sum += err;
   }
   return sum / linear.data.length;
 }
 
-function linearTrainEpoch() {
-  let dm = 0;
-  let db = 0;
-  const n = linear.data.length;
+function calcBestFitLine(points) {
+  const n = points.length;
+  let sumX = 0;
+  let sumY = 0;
+  let sumXY = 0;
+  let sumXX = 0;
 
-  for (const p of linear.data) {
-    const err = linear.m * p.x + linear.b - p.y;
-    dm += (2 / n) * err * p.x;
-    db += (2 / n) * err;
+  for (const p of points) {
+    sumX += p.x;
+    sumY += p.y;
+    sumXY += p.x * p.y;
+    sumXX += p.x * p.x;
   }
 
-  linear.m -= linear.lr * dm;
-  linear.b -= linear.lr * db;
-  linear.epoch += 1;
-  linear.lastLoss = linearLoss(linear.m, linear.b);
+  const denominator = n * sumXX - sumX * sumX;
+  if (Math.abs(denominator) < 1e-9) {
+    return { m: 0, b: sumY / n };
+  }
+
+  const m = (n * sumXY - sumX * sumY) / denominator;
+  const b = (sumY - m * sumX) / n;
+  return { m, b };
+}
+
+function linearTrainRound() {
+  const blend = 0.115;
+  linear.m += (linear.targetM - linear.m) * blend;
+  linear.b += (linear.targetB - linear.b) * blend;
+  linear.round += 1;
+  linear.currentError = linearError(linear.m, linear.b);
 }
 
 function scaleX(x) {
@@ -301,13 +322,15 @@ function renderLinear() {
 
   linear.xReadout.textContent = `x = ${Number(linear.slider.value).toFixed(1)}`;
   if (step === "input") {
-    linear.stats.textContent = "Dataset loaded. Click Learn to train the model.";
+    linear.stats.textContent = "These dots are known examples. Click Learn to let the line move into place.";
   } else if (step === "learn") {
-    const lossText = linear.lastLoss === null ? "--" : linear.lastLoss.toFixed(3);
-    linear.stats.textContent = `Epoch ${linear.epoch}/${linear.maxEpoch} | Loss ${lossText} | y = ${linear.m.toFixed(2)}x + ${linear.b.toFixed(2)}`;
+    const fit = linear.initialError
+      ? clamp(100 - (linear.currentError / linear.initialError) * 100, 0, 100)
+      : 0;
+    linear.stats.textContent = `Line fit progress: ${fit.toFixed(0)}%`;
   } else {
     const pred = linearPredict(Number(linear.slider.value));
-    linear.stats.textContent = `Learned line: y = ${linear.m.toFixed(2)}x + ${linear.b.toFixed(2)} | Current prediction: ${pred.toFixed(2)}`;
+    linear.stats.textContent = `For this input, the model predicts about ${pred.toFixed(1)}.`;
   }
 }
 
@@ -319,14 +342,14 @@ function startLinearTraining() {
       return;
     }
 
-    if (linear.epoch >= linear.maxEpoch) {
+    if (linear.round >= linear.maxRounds || linear.currentError < 0.75) {
       stopLinearTraining();
       renderLinear();
       return;
     }
 
-    for (let i = 0; i < 2 && linear.epoch < linear.maxEpoch; i += 1) {
-      linearTrainEpoch();
+    for (let i = 0; i < 2 && linear.round < linear.maxRounds; i += 1) {
+      linearTrainRound();
     }
 
     renderLinear();
@@ -342,22 +365,15 @@ function stopLinearTraining() {
 
 const deep = {
   svg: document.getElementById("network-svg"),
-  sliders: {
-    ears: document.getElementById("feat-ears"),
-    fur: document.getElementById("feat-fur"),
-    tail: document.getElementById("feat-tail"),
-  },
-  trainButton: document.getElementById("deep-train"),
-  randomButton: document.getElementById("deep-randomize"),
-  epochText: document.getElementById("deep-epoch"),
-  lossText: document.getElementById("deep-loss"),
+  profileSlider: document.getElementById("deep-profile"),
+  profileReadout: document.getElementById("deep-profile-readout"),
+  statusText: document.getElementById("deep-status"),
+  guideText: document.getElementById("deep-guide"),
   barsWrap: document.getElementById("prediction-bars"),
-  lossCanvas: document.getElementById("loss-canvas"),
   timer: null,
-  epoch: 0,
-  maxEpoch: 180,
+  round: 0,
+  maxRounds: 180,
   lr: 0.08,
-  history: [],
   inSize: 3,
   hiddenSize: 5,
   outSize: 3,
@@ -429,10 +445,9 @@ function deepInit() {
   deep.b1 = randomVector(deep.hiddenSize);
   deep.w2 = randomMatrix(deep.outSize, deep.hiddenSize);
   deep.b2 = randomVector(deep.outSize);
-  deep.epoch = 0;
-  deep.history = [];
-  deep.lossText.textContent = "Loss: --";
-  deep.epochText.textContent = "Epoch: 0";
+  deep.round = 0;
+  deep.profileSlider.value = "30";
+  deep.statusText.textContent = "Status: Ready to practice";
 }
 
 function forwardPass(input) {
@@ -463,17 +478,9 @@ function oneHot(label) {
 }
 
 function trainOneEpoch() {
-  let epochLoss = 0;
-
   for (const sample of toyDataset) {
     const y = oneHot(sample.label);
     const { a1, probs } = forwardPass(sample.x);
-
-    let sampleLoss = 0;
-    for (let k = 0; k < deep.outSize; k += 1) {
-      sampleLoss += -y[k] * Math.log(probs[k] + 1e-9);
-    }
-    epochLoss += sampleLoss;
 
     const dz2 = probs.map((p, k) => p - y[k]);
 
@@ -515,17 +522,23 @@ function trainOneEpoch() {
     }
   }
 
-  const avgLoss = epochLoss / toyDataset.length;
-  deep.epoch += 1;
-  deep.history.push(avgLoss);
+  deep.round += 1;
 }
 
 function getFeatureInput() {
-  return [
-    Number(deep.sliders.ears.value),
-    Number(deep.sliders.fur.value),
-    Number(deep.sliders.tail.value),
+  const anchors = [
+    [0.84, 0.6, 0.5],
+    [0.35, 0.56, 0.86],
+    [0.9, 0.26, 0.34],
+    [0.84, 0.6, 0.5],
   ];
+  const t = Number(deep.profileSlider.value) / 100;
+  const scaled = t * 3;
+  const idx = Math.min(2, Math.floor(scaled));
+  const local = idx === 2 ? Math.min(1, scaled - 2) : scaled - idx;
+  const a = anchors[idx];
+  const b = anchors[idx + 1];
+  return a.map((v, i) => v + (b[i] - v) * local);
 }
 
 function weightColor(w) {
@@ -591,6 +604,7 @@ function drawLayerLabel(svg, x, text) {
 }
 
 function renderDeepNetwork() {
+  const step = STEPS[state.stepIndex];
   const input = getFeatureInput();
   const { a1, probs } = forwardPass(input);
   const svg = deep.svg;
@@ -631,10 +645,23 @@ function renderDeepNetwork() {
   }
 
   renderPredictionBars(probs);
-  deep.epochText.textContent = `Epoch: ${deep.epoch}`;
-  const currentLoss = deep.history.at(-1);
-  deep.lossText.textContent = `Loss: ${currentLoss ? currentLoss.toFixed(3) : "--"}`;
-  drawLossChart();
+  deep.profileReadout.textContent = `Sample: ${deep.profileSlider.value}`;
+
+  if (step === "input") {
+    deep.guideText.textContent = "Next action: click Next to start the learning animation.";
+  } else if (step === "learn") {
+    deep.guideText.textContent = "Next action: watch the network practice, then click Next.";
+  } else {
+    deep.guideText.textContent = "Next action: move the sample slider to test new inputs.";
+  }
+
+  if (deep.round === 0 && step !== "learn") {
+    deep.statusText.textContent = "Status: Ready to practice";
+  } else if (deep.round < deep.maxRounds) {
+    deep.statusText.textContent = "Status: Practicing with examples";
+  } else {
+    deep.statusText.textContent = "Status: Ready to predict";
+  }
 }
 
 function renderPredictionBars(probs) {
@@ -649,56 +676,6 @@ function renderPredictionBars(probs) {
     `;
     deep.barsWrap.appendChild(row);
   });
-}
-
-function drawLossChart() {
-  const canvas = deep.lossCanvas;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    return;
-  }
-
-  const { width, height } = canvas;
-  ctx.clearRect(0, 0, width, height);
-
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, width, height);
-
-  ctx.strokeStyle = "rgba(18, 23, 36, 0.2)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(28, 12);
-  ctx.lineTo(28, height - 20);
-  ctx.lineTo(width - 10, height - 20);
-  ctx.stroke();
-
-  ctx.fillStyle = "#55637f";
-  ctx.font = "11px Sora";
-  ctx.fillText("Loss", 8, 18);
-  ctx.fillText("Epoch", width - 42, height - 6);
-
-  if (deep.history.length < 2) {
-    return;
-  }
-
-  const minLoss = Math.min(...deep.history);
-  const maxLoss = Math.max(...deep.history);
-  const span = Math.max(0.001, maxLoss - minLoss);
-
-  ctx.strokeStyle = "#0f8f8f";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-
-  deep.history.forEach((loss, i) => {
-    const x = 28 + (i / (deep.history.length - 1)) * (width - 42);
-    const y = 12 + ((maxLoss - loss) / span) * (height - 32);
-    if (i === 0) {
-      ctx.moveTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
-    }
-  });
-  ctx.stroke();
 }
 
 function stopDeepTraining() {
@@ -722,24 +699,17 @@ function startDeepTraining(autoToMax = false) {
       return;
     }
 
-    if (deep.epoch >= deep.maxEpoch) {
+    if (deep.round >= deep.maxRounds) {
       stopDeepTraining();
       renderDeepNetwork();
       return;
     }
 
-    for (let i = 0; i < 2 && deep.epoch < deep.maxEpoch; i += 1) {
+    for (let i = 0; i < 2 && deep.round < deep.maxRounds; i += 1) {
       trainOneEpoch();
     }
     renderDeepNetwork();
   }, 50);
-}
-
-function randomizeFeatureInput() {
-  deep.sliders.ears.value = rand(0.15, 0.95).toFixed(2);
-  deep.sliders.fur.value = rand(0.1, 0.9).toFixed(2);
-  deep.sliders.tail.value = rand(0.12, 0.95).toFixed(2);
-  renderDeepNetwork();
 }
 
 function setStep(index) {
@@ -748,7 +718,19 @@ function setStep(index) {
 }
 
 function setAlgorithm(algo) {
+  if (state.algo === algo) {
+    return;
+  }
+
   state.algo = algo;
+  state.stepIndex = 0;
+
+  if (algo === "linear") {
+    linearResetTraining();
+  } else {
+    deepInit();
+  }
+
   updateUiState();
 }
 
@@ -761,14 +743,21 @@ function updateUiState() {
     btn.setAttribute("aria-selected", String(isActive));
   });
 
-  refs.stepButtons.forEach((btn, idx) => {
-    const isActive = idx === state.stepIndex;
-    btn.classList.toggle("active", isActive);
-    btn.setAttribute("aria-selected", String(isActive));
+  refs.stepIndicators.forEach((el, idx) => {
+    el.classList.toggle("active", idx === state.stepIndex);
   });
 
   refs.linearPanel.classList.toggle("hidden", state.algo !== "linear");
   refs.deepPanel.classList.toggle("hidden", state.algo !== "deep");
+  refs.linearInputControl.classList.toggle(
+    "hidden",
+    !(state.algo === "linear" && step === "output"),
+  );
+  refs.deepSampleControl.classList.toggle(
+    "hidden",
+    !(state.algo === "deep" && step === "output"),
+  );
+  deep.profileSlider.disabled = !(state.algo === "deep" && step === "output");
 
   refs.prevButton.disabled = state.stepIndex === 0;
   refs.nextButton.disabled = state.stepIndex === STEPS.length - 1;
@@ -795,8 +784,8 @@ function updateUiState() {
     } else {
       stopDeepTraining();
 
-      if (step === "output" && deep.epoch < 25) {
-        for (let i = deep.epoch; i < 25; i += 1) {
+      if (step === "output" && deep.round < 40) {
+        for (let i = deep.round; i < 40; i += 1) {
           trainOneEpoch();
         }
       }
@@ -812,29 +801,13 @@ function bindEvents() {
     });
   });
 
-  refs.stepButtons.forEach((btn, idx) => {
-    btn.addEventListener("click", () => setStep(idx));
-  });
-
   refs.prevButton.addEventListener("click", () => setStep(state.stepIndex - 1));
   refs.nextButton.addEventListener("click", () => setStep(state.stepIndex + 1));
 
   linear.slider.addEventListener("input", renderLinear);
   linear.regenButton.addEventListener("click", linearGenerateData);
 
-  Object.values(deep.sliders).forEach((slider) => {
-    slider.addEventListener("input", renderDeepNetwork);
-  });
-
-  deep.randomButton.addEventListener("click", randomizeFeatureInput);
-
-  deep.trainButton.addEventListener("click", () => {
-    if (deep.epoch >= deep.maxEpoch) {
-      deepInit();
-      renderDeepNetwork();
-    }
-    startDeepTraining(false);
-  });
+  deep.profileSlider.addEventListener("input", renderDeepNetwork);
 
   window.addEventListener("beforeunload", () => {
     stopLinearTraining();

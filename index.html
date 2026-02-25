@@ -36,16 +36,10 @@
           </button>
         </div>
 
-        <div class="stepper" role="tablist" aria-label="Learning steps">
-          <button class="step-btn active" data-step="input" role="tab" aria-selected="true">
-            1. Input
-          </button>
-          <button class="step-btn" data-step="learn" role="tab" aria-selected="false">
-            2. Learn
-          </button>
-          <button class="step-btn" data-step="output" role="tab" aria-selected="false">
-            3. Output
-          </button>
+        <div class="stepper" role="status" aria-label="Learning steps">
+          <div class="step-indicator active">1. Input</div>
+          <div class="step-indicator">2. Learn</div>
+          <div class="step-indicator">3. Output</div>
         </div>
 
         <div class="step-nav">
@@ -64,7 +58,7 @@
 
             <svg id="linear-svg" viewBox="0 0 700 360" aria-label="Linear regression chart"></svg>
 
-            <div class="control-row">
+            <div id="linear-input-control" class="control-row">
               <label for="linear-x-slider">Try an input value (x):</label>
               <input id="linear-x-slider" type="range" min="0" max="10" step="0.1" value="6" />
               <span id="linear-x-readout">x = 6.0</span>
@@ -75,34 +69,22 @@
           <div id="deep-panel" class="viz-panel hidden">
             <div class="viz-heading">
               <h2>Deep Learning (ANN) Visual</h2>
-              <button id="deep-randomize" class="small-btn" type="button">Random Sample</button>
             </div>
 
             <svg id="network-svg" viewBox="0 0 700 340" aria-label="Neural network diagram"></svg>
 
-            <div class="feature-grid">
-              <label>
-                Ear pointiness
-                <input id="feat-ears" type="range" min="0" max="1" step="0.01" value="0.55" />
-              </label>
-              <label>
-                Fur fluffiness
-                <input id="feat-fur" type="range" min="0" max="1" step="0.01" value="0.45" />
-              </label>
-              <label>
-                Tail length
-                <input id="feat-tail" type="range" min="0" max="1" step="0.01" value="0.58" />
-              </label>
+            <div id="deep-sample-control" class="control-row">
+              <label for="deep-profile">Try a new sample:</label>
+              <input id="deep-profile" type="range" min="0" max="100" step="1" value="30" />
+              <span id="deep-profile-readout">Sample: 30</span>
             </div>
 
             <div class="control-row ann-actions">
-              <button id="deep-train" class="small-btn" type="button">Train Network</button>
-              <span id="deep-epoch">Epoch: 0</span>
-              <span id="deep-loss">Loss: --</span>
+              <span id="deep-status">Status: Ready to practice</span>
             </div>
+            <p id="deep-guide" class="stat-line"></p>
 
             <div class="deep-bottom">
-              <canvas id="loss-canvas" width="300" height="140" aria-label="Training loss chart"></canvas>
               <div id="prediction-bars" class="bars"></div>
             </div>
           </div>
