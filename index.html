@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Machine Learning Visual Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Sora:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-orb bg-orb-a" aria-hidden="true"></div>
+    <div class="bg-orb bg-orb-b" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <p class="brand-kicker">Interactive ML Primer</p>
+      <h1>See how machines learn from data</h1>
+      <p class="subline">
+        Follow three steps: <strong>Input</strong>, <strong>Learn</strong>, and
+        <strong>Output</strong>. Switch between Linear Regression and Deep Learning.
+      </p>
+    </header>
+
+    <main class="layout">
+      <section class="controls card">
+        <div class="algo-switch" role="tablist" aria-label="Algorithm choice">
+          <button class="algo-btn active" data-algo="linear" role="tab" aria-selected="true">
+            Linear Regression
+          </button>
+          <button class="algo-btn" data-algo="deep" role="tab" aria-selected="false">
+            Deep Learning (ANN)
+          </button>
+        </div>
+
+        <div class="stepper" role="tablist" aria-label="Learning steps">
+          <button class="step-btn active" data-step="input" role="tab" aria-selected="true">
+            1. Input
+          </button>
+          <button class="step-btn" data-step="learn" role="tab" aria-selected="false">
+            2. Learn
+          </button>
+          <button class="step-btn" data-step="output" role="tab" aria-selected="false">
+            3. Output
+          </button>
+        </div>
+
+        <div class="step-nav">
+          <button id="prev-step" class="ghost-btn" type="button">Back</button>
+          <button id="next-step" class="ghost-btn" type="button">Next</button>
+        </div>
+      </section>
+
+      <section class="stage-grid">
+        <article class="visual card">
+          <div id="linear-panel" class="viz-panel">
+            <div class="viz-heading">
+              <h2>Linear Regression Visual</h2>
+              <button id="regen-data" class="small-btn" type="button">New Data</button>
+            </div>
+
+            <svg id="linear-svg" viewBox="0 0 700 360" aria-label="Linear regression chart"></svg>
+
+            <div class="control-row">
+              <label for="linear-x-slider">Try an input value (x):</label>
+              <input id="linear-x-slider" type="range" min="0" max="10" step="0.1" value="6" />
+              <span id="linear-x-readout">x = 6.0</span>
+            </div>
+            <p id="linear-stats" class="stat-line"></p>
+          </div>
+
+          <div id="deep-panel" class="viz-panel hidden">
+            <div class="viz-heading">
+              <h2>Deep Learning (ANN) Visual</h2>
+              <button id="deep-randomize" class="small-btn" type="button">Random Sample</button>
+            </div>
+
+            <svg id="network-svg" viewBox="0 0 700 340" aria-label="Neural network diagram"></svg>
+
+            <div class="feature-grid">
+              <label>
+                Ear pointiness
+                <input id="feat-ears" type="range" min="0" max="1" step="0.01" value="0.55" />
+              </label>
+              <label>
+                Fur fluffiness
+                <input id="feat-fur" type="range" min="0" max="1" step="0.01" value="0.45" />
+              </label>
+              <label>
+                Tail length
+                <input id="feat-tail" type="range" min="0" max="1" step="0.01" value="0.58" />
+              </label>
+            </div>
+
+            <div class="control-row ann-actions">
+              <button id="deep-train" class="small-btn" type="button">Train Network</button>
+              <span id="deep-epoch">Epoch: 0</span>
+              <span id="deep-loss">Loss: --</span>
+            </div>
+
+            <div class="deep-bottom">
+              <canvas id="loss-canvas" width="300" height="140" aria-label="Training loss chart"></canvas>
+              <div id="prediction-bars" class="bars"></div>
+            </div>
+          </div>
+        </article>
+
+        <aside class="explain card">
+          <p class="tag">Current step</p>
+          <h3 id="stage-title">Input: collect examples</h3>
+          <p id="stage-copy"></p>
+
+          <div class="watch-box">
+            <p class="watch-title">What to watch now</p>
+            <p id="watch-copy"></p>
+          </div>
+
+          <div class="progress-wrap" aria-hidden="true">
+            <div id="progress-bar" class="progress-bar"></div>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>
