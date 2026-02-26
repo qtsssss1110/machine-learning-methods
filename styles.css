@@ -232,26 +232,41 @@ a {
   gap: 0.75rem;
 }
 
+.progress-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+  font-weight: 600;
+}
+
 .stepper {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.55rem;
-  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 0.4rem;
 }
 
 .step-indicator {
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 0.5rem 0.85rem;
-  background: rgba(255, 255, 255, 0.8);
-  color: var(--ink-700);
-  font-size: 0.9rem;
+  border-radius: 9px;
+  padding: 0.48rem 0.62rem;
+  background: transparent;
+  color: var(--ink-500);
+  font-size: 0.86rem;
+  font-weight: 600;
   user-select: none;
+  cursor: default;
+  pointer-events: none;
+  text-align: center;
 }
 
 .step-indicator.active {
-  background: linear-gradient(145deg, #18334f, #266383);
-  color: #fff;
-  border-color: transparent;
+  background: var(--teal-soft);
+  color: var(--ink-900);
+  box-shadow: inset 0 0 0 1px rgba(15, 143, 143, 0.28);
 }
 
 .step-nav {
@@ -417,5 +432,9 @@ input[type="range"] {
   .step-nav {
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+
+  .stepper {
+    grid-template-columns: 1fr;
   }
 }
