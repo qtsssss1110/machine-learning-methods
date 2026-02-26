@@ -1,30 +1,48 @@
 # Machine Learning Methods Visualizer
 
-An interactive, beginner-friendly website that visually explains how machine learning works through three steps:
+A split-page, beginner-friendly website that teaches machine learning with clear guided paths.
 
-1. Input
-2. Learn
-3. Output / Prediction
+## Pages
 
-It includes two modes:
+- `index.html` (Home): choose a learning path from two big start cards.
+- `linear.html`: Linear Regression storyboard (`Input -> Learn -> Output`).
+- `ann.html`: Deep Learning storyboard (`Input -> Learn -> Output`) using a spam-filter narrative.
 
-- Linear Regression: scattered data points and an animated best-fit line moving into place.
-- Deep Learning (ANN): feature inputs flowing through a neural network with practice rounds and class probabilities.
+## Learning Flows
+
+### Linear Regression page
+
+1. Input: click **Load Example Points**
+2. Learn: click **Fit Trend Line**
+3. Output: move the `x` slider to test predictions
+
+### Deep Learning page
+
+1. Input: click **Load 5 Sample Messages**
+2. Learn: click **Load 500 Examples** then **Learn Fast**
+3. Output: move the **Message risk level** slider to predict `Spam` vs `Not Spam`
+
+ANN learning path uses this narrative:
+
+- Start from rough guesses on 5 examples
+- Train quickly on 500 examples
+- Use the trained predictor with confidence (probability)
 
 ## Run locally
 
-Because this is a static site, you can open `index.html` directly in a browser.
-
-For a local server (recommended):
+Open `index.html` directly, or run a local server:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000`.
+Then visit `http://localhost:8000`.
 
 ## Files
 
-- `index.html`: page structure and educational content
-- `styles.css`: visual design, layout, and responsive behavior
-- `script.js`: interactive controls, visual simulations, and step logic
+- `index.html`: Home chooser page
+- `linear.html`: Linear Regression page
+- `ann.html`: Deep Learning page
+- `styles.css`: shared styling across all pages
+- `linear.js`: linear-only state machine and rendering
+- `ann.js`: ANN-only state machine and rendering

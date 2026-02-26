@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Linear Regression | ML Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Sora:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header card">
+        <p class="brand">Interactive ML Primer</p>
+        <nav class="nav-tabs" aria-label="Main navigation">
+          <a class="nav-tab" href="index.html">Home</a>
+          <a class="nav-tab active" href="linear.html">Linear Regression</a>
+          <a class="nav-tab" href="ann.html">Deep Learning</a>
+        </nav>
+      </header>
+
+      <section class="lesson-header card">
+        <h1>Linear Regression: Trend Line Story</h1>
+        <p>
+          Goal: the model finds one line that best follows noisy dots, then uses
+          it to predict values for new inputs.
+        </p>
+      </section>
+
+      <section class="start-strip card">
+        <div class="strip-row">
+          <span id="stage-pill" class="stage-pill">Step 1</span>
+          <span id="stage-name" class="strip-title">Input</span>
+        </div>
+        <p id="action-line" class="strip-copy"></p>
+        <p id="watch-line" class="strip-copy"></p>
+      </section>
+
+      <section class="step-nav-wrap card">
+        <div class="stepper" aria-label="Learning steps">
+          <div class="step-indicator active">1. Input</div>
+          <div class="step-indicator">2. Learn</div>
+          <div class="step-indicator">3. Output</div>
+        </div>
+        <div class="step-nav">
+          <button id="prev-step" class="ghost-btn" type="button">Back</button>
+          <button id="next-step" class="ghost-btn" type="button">Next</button>
+        </div>
+      </section>
+
+      <section class="lesson-main card">
+        <h2>Trend Line Visual</h2>
+        <svg id="linear-svg" viewBox="0 0 700 360" aria-label="Linear regression chart"></svg>
+
+        <div class="control-box">
+          <button id="load-points" class="small-btn" type="button">Load Example Points</button>
+          <button id="fit-line" class="small-btn hidden" type="button">Fit Trend Line</button>
+
+          <div id="predict-control" class="control-row hidden">
+            <label for="linear-x-slider">Try input value x:</label>
+            <input id="linear-x-slider" type="range" min="0" max="10" step="0.1" value="6" />
+            <span id="linear-x-readout">x = 6.0</span>
+          </div>
+        </div>
+
+        <p id="linear-feedback" class="status-note"></p>
+      </section>
+    </div>
+
+    <script src="linear.js" defer></script>
+  </body>
+</html>

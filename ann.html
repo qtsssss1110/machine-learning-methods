@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deep Learning | ML Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Sora:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header card">
+        <p class="brand">Interactive ML Primer</p>
+        <nav class="nav-tabs" aria-label="Main navigation">
+          <a class="nav-tab" href="index.html">Home</a>
+          <a class="nav-tab" href="linear.html">Linear Regression</a>
+          <a class="nav-tab active" href="ann.html">Deep Learning</a>
+        </nav>
+      </header>
+
+      <section class="lesson-header card">
+        <h1>Deep Learning: Smart Filter Gate Story</h1>
+        <p>
+          A neural network starts with rough guesses, checks answers, and adjusts
+          internal gate weights. More examples make it more accurate.
+        </p>
+      </section>
+
+      <section class="start-strip card">
+        <div class="strip-row">
+          <span id="stage-pill" class="stage-pill">Step 1</span>
+          <span id="stage-name" class="strip-title">Input</span>
+        </div>
+        <p id="action-line" class="strip-copy"></p>
+        <p id="watch-line" class="strip-copy"></p>
+      </section>
+
+      <section class="step-nav-wrap card">
+        <div class="stepper" aria-label="Learning steps">
+          <div class="step-indicator active">1. Input</div>
+          <div class="step-indicator">2. Learn</div>
+          <div class="step-indicator">3. Output</div>
+        </div>
+        <div class="step-nav">
+          <button id="prev-step" class="ghost-btn" type="button">Back</button>
+          <button id="next-step" class="ghost-btn" type="button">Next</button>
+        </div>
+      </section>
+
+      <section class="lesson-main card">
+        <h2>Neural Network (3 clues -> 2 gates -> 2 outputs)</h2>
+        <svg id="ann-svg" viewBox="0 0 700 340" aria-label="ANN diagram"></svg>
+
+        <div id="input-tools" class="control-box">
+          <button id="load-5" class="small-btn" type="button">Load 5 Sample Messages</button>
+          <div class="sample-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Message</th>
+                  <th>Expected label</th>
+                </tr>
+              </thead>
+              <tbody id="sample-rows">
+                <tr>
+                  <td colspan="2">No examples loaded yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p id="sample-summary" class="status-note"></p>
+        </div>
+
+        <div id="learn-tools" class="control-box hidden">
+          <div class="ann-tools">
+            <button id="load-500" class="small-btn" type="button">Load 500 Examples</button>
+            <button id="learn-fast" class="small-btn" type="button">Learn Fast</button>
+          </div>
+          <div class="badge-row">
+            <span id="mistakes" class="mini-badge">Mistakes left: --</span>
+            <span id="rounds" class="mini-badge">Rounds completed: 0</span>
+          </div>
+          <p id="learn-note" class="status-note"></p>
+        </div>
+
+        <div id="output-tools" class="control-box hidden">
+          <div class="control-row">
+            <label for="risk-slider">Message risk level:</label>
+            <input id="risk-slider" type="range" min="0" max="100" step="1" value="50" />
+            <span id="risk-readout">Risk: 50</span>
+          </div>
+
+          <div id="prediction-bars" class="bars"></div>
+          <p id="output-summary" class="status-note"></p>
+        </div>
+      </section>
+    </div>
+
+    <script src="ann.js" defer></script>
+  </body>
+</html>
